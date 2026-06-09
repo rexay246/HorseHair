@@ -3,23 +3,23 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum CursorType
+{
+    Default,
+    Item,
+    NonEssentialItem,
+    Environment,
+}
+
 public class CursorManager : MonoBehaviour
 {
-    [SerializeField] private List<CursorAnimation> cursorAnimationsList;
+    [SerializeField] private List<CursorsScript> CursorsScriptsList;
 
-    private Dictionary<CursorType, CursorAnimation> _cursorAnimationsDict;
-    private CursorAnimation _cursorAnimation;
+    private Dictionary<CursorType, CursorsScript> _CursorsScriptsDict;
+    private CursorsScript _CursorsScript;
     private int _currentFrame;
     private float _frameTimer;
     private int _frameCount;
-
-    public enum CursorType
-    {
-        Default,
-        Item,
-        NonEssentialItem,
-        Environment,
-    }
 
     private void OnEnable()
     {
@@ -33,13 +33,13 @@ public class CursorManager : MonoBehaviour
 
     private void Start()
     {
-        _cursorAnimationsDict = new Dictionary<CursorType, CursorAnimation>();
-        foreach (CursorAnimation anim in cursorAnimationsList)
+        _CursorsScriptsDict = new Dictionary<CursorType, CursorsScript>();
+        foreach (CursorsScript anim in CursorsScriptsList)
         {
-            _cursorAnimationsDict[anim.cursorType] = anim;
+            _CursorsScriptsDict[anim.cursorType] = anim;
         }
 
-        SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.Default]);
+        SetActiveCursorsScript(_CursorsScriptsDict[CursorType.Default]);
     }
 
     private void Update()
@@ -47,21 +47,21 @@ public class CursorManager : MonoBehaviour
         _frameTimer -= Time.deltaTime;
         if (_frameTimer <= 0f)
         {
-            _frameTimer += _cursorAnimation.frameRate;
+            _frameTimer += _CursorsScript.frameRate;
             _currentFrame = (_currentFrame + 1) % _frameCount;
-            Cursor.SetCursor(_cursorAnimation.frames[_currentFrame], _cursorAnimation.offset, CursorMode.Auto);
+            Cursor.SetCursor(_CursorsScript.frames[_currentFrame], _CursorsScript.offset, CursorMode.Auto);
         }
 
         if (Input.GetKeyDown(KeyCode.T))
-            SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.Environment]);
+            SetActiveCursorsScript(_CursorsScriptsDict[CursorType.Environment]);
     }
 
-    private void SetActiveCursorAnimation(CursorAnimation cursorAnimation)
+    private void SetActiveCursorsScript(CursorsScript CursorsScript)
     {
-        _cursorAnimation = cursorAnimation;
+        _CursorsScript = CursorsScript;
         _currentFrame = 0;
-        _frameCount = cursorAnimation.frames.Length;
-        _frameTimer = cursorAnimation.frameRate;     
+        _frameCount = CursorsScript.frames.Length;
+        _frameTimer = CursorsScript.frameRate;     
     }
 
     private void HandleObjectHovered(ObjectType type)
@@ -69,26 +69,17 @@ public class CursorManager : MonoBehaviour
         switch (type)
         {
             case ObjectType.Environment:
-                SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.Environment]);
+                SetActiveCursorsScript(_CursorsScriptsDict[CursorType.Environment]);
                 break;
             case ObjectType.Item:
-                SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.Item]);
+                SetActiveCursorsScript(_CursorsScriptsDict[CursorType.Item]);
                 break;
             case ObjectType.NEI:
-                SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.NonEssentialItem]);
+                SetActiveCursorsScript(_CursorsScriptsDict[CursorType.NonEssentialItem]);
                 break;
             default:
-                SetActiveCursorAnimation(_cursorAnimationsDict[CursorType.Default]);
+                SetActiveCursorsScript(_CursorsScriptsDict[CursorType.Default]);
                 break;
         }
-    }
-
-    [System.Serializable]
-    public class CursorAnimation
-    {
-        public CursorType cursorType;
-        public Texture2D[] frames;
-        public float frameRate;
-        public Vector2 offset;
     }
 }
